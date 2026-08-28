@@ -4,4 +4,7 @@ bin/
 build/
 __pycache__/
 .env
+node_modules/
+server_backup_wrong/
+cloud-lab-ban/
 .env
