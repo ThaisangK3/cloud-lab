@@ -11,9 +11,31 @@ app.use(express.json());
 
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mern-demo';
 
-mongoose.connect(MONGO_URI)
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.error('MongoDB Connection Error:', err));
+async function connectToMongoDB() {
+  const maxAttempts = 10;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      await mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 5000 });
+      console.log('MongoDB Connected');
+      return;
+    } catch (err) {
+      console.error(`MongoDB connection attempt ${attempt}/${maxAttempts} failed: ${err.message}`);
+      if (attempt < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+    }
+  }
+
+  throw new Error('Could not connect to MongoDB after multiple attempts');
+}
+
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Backend is running. Open port 5173 to use the student management app.',
+    studentsApi: '/api/students'
+  });
+});
 
 app.get('/api/hello', (req, res) => {
   res.json({ message: 'Backend running successfully!' });
@@ -62,4 +84,10 @@ app.delete('/api/students/:id', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+connectToMongoDB()
+  .then(() => app.listen(PORT, () => console.log(`Server running on port ${PORT}`)))
+  .catch(err => {
+    console.error(err.message);
+    process.exit(1);
+  });

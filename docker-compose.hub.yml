@@ -1,0 +1,19 @@
+services:
+  backend:
+    platform: linux/amd64
+    image: thaisang/mern-frontend:2.0
+    container_name: mern-backend-hub
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb+srv://cloud_lab_user:thaisang@cluster0.msban3h.mongodb.net/mern-demo?retryWrites=true&w=all
+      - PORT=5000
+
+  frontend:
+    platform: linux/amd64
+    image: thaisang/mern-frontend:1.0
+    container_name: mern-frontend-hub
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
